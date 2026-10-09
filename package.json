@@ -1,13 +1,21 @@
 {
-  "name": "energy-ingestion-engine",
-  "version": "0.1.0",
+  "name": "energy-ingestion-engine-root",
+  "version": "1.0.0",
   "private": true,
+  "description": "Scalable monorepo for wholesale energy trade ingestion and real-time validation",
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "clean": "rmdir /s /q dist node_modules",
+    "test": "npm test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present"
+  "devDependencies": {
+    "typescript": "^5.0.0"
   }
 }
