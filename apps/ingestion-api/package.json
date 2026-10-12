@@ -1,0 +1,19 @@
+{
+  "name": "@energy-engine/ingestion-api",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc && node ./dist/server.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@energy-engine/shared-types": "*",
+    "fastify": "^4.20.0",
+    "ioredis": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
