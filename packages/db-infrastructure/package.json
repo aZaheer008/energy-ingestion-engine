@@ -6,10 +6,12 @@
   "scripts": {
     "migrate:make": "knex migrate:make --knexfile knexfile.js",
     "migrate:latest": "knex migrate:latest --knexfile knexfile.js",
-    "migrate:rollback": "knex migrate:rollback --knexfile knexfile.js"
+    "migrate:rollback": "knex migrate:rollback --knexfile knexfile.js",
+    "seed:run": "knex seed:run --knexfile knexfile.js"
   },
   "dependencies": {
     "knex": "^3.0.1",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "uuid": "^14.0.3"
   }
 }
