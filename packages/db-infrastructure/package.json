@@ -1,0 +1,15 @@
+{
+  "name": "@energy-engine/db-infrastructure",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "scripts": {
+    "migrate:make": "knex migrate:make --knexfile knexfile.js",
+    "migrate:latest": "knex migrate:latest --knexfile knexfile.js",
+    "migrate:rollback": "knex migrate:rollback --knexfile knexfile.js"
+  },
+  "dependencies": {
+    "knex": "^3.0.1",
+    "pg": "^8.11.3"
+  }
+}
