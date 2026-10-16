@@ -5,13 +5,16 @@
   "main": "./dist/server.js",
   "type": "module",
   "scripts": {
-    "dev": "tsc && node ./dist/server.js",
+    "dev": "tsc --watch & node --experimental-specifier-resolution=node ./dist/server.js",
     "build": "tsc"
   },
   "dependencies": {
     "@energy-engine/shared-types": "*",
+    "@energy-engine/db-infrastructure": "*",
     "fastify": "^4.20.0",
-    "ioredis": "^5.3.0"
+    "ioredis": "^5.3.0",
+    "knex": "^3.0.1",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "@types/node": "^20.0.0"
