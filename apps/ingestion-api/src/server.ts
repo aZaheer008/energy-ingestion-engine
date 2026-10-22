@@ -39,7 +39,10 @@ class LocalTradeStateMachine {
 const app = fastify({ logger: true });
 
 // Initialize Redis Client
-const redis = new Redis({ host: "127.0.0.1", port: 6379 });
+const redis = new Redis({
+    host: process.env.REDIS_HOST || "127.0.0.1",
+    port: parseInt(process.env.REDIS_PORT || "6379", 10)
+});
 
 // Initialize Enterprise-Grade Knex.js Database Connection Pool
 const db: Knex = knex({
@@ -59,6 +62,11 @@ const db: Knex = knex({
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const auditLogPath = path.join(__dirname, "../../trade_audit_ledger.json_lines");
+
+app.get("/health", async (_request, reply) => {
+    await Promise.all([redis.ping(), db.raw("SELECT 1")]);
+    return reply.send({ status: "ok" });
+});
 
 // Warm up Redis mock risk pools on boot
 app.ready(async () => {
@@ -172,8 +180,10 @@ app.post("/api/v1/trades", async (request, reply) => {
 // Boot Server Gateway
 const startServer = async () => {
     try {
-        await app.listen({ port: 3000, host: "127.0.0.1" });
-        console.log("⚡ Integrated Ingestion API Gateway online on port 3000...");
+        const port = parseInt(process.env.API_PORT || "3000", 10);
+        const host = process.env.API_HOST || "127.0.0.1";
+        await app.listen({ port, host });
+        console.log(`⚡ Integrated Ingestion API Gateway online on ${host}:${port}...`);
     } catch (err) {
         app.log.error(err);
         process.exit(1);

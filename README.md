@@ -41,6 +41,18 @@ The first commit contains the executive blueprint and documentation only. Applic
 
 The examples are educational and are not production trading software or universal market rules. Product definitions, price ticks, time zones, settlement conventions, currencies, and regulatory requirements must be confirmed for the intended market and jurisdiction.
 
+## Local container stack
+
+Docker Compose starts PostgreSQL, Redis, and the Fastify ingestion API together:
+
+```sh
+docker compose up --build
+```
+
+The API waits for healthy database and Redis services, applies pending PostgreSQL migrations, and then listens on port 3000. Check readiness at `http://127.0.0.1:3000/health`. Stop the stack with `docker compose down`; add `-v` only when you also intend to remove the local database and Redis data volumes. Default database credentials are for local learning only.
+
+Redis is a single local instance in this Compose stack, matching the API's standalone ioredis client; it is not a Redis Cluster deployment.
+
 ## Planned Workspaces
 
 - `apps/ingestion-api`: Receives and validates trade ingestion requests.
