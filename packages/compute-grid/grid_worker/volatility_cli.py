@@ -52,16 +52,20 @@ def resolve_optimal_workers(requested_workers: Optional[int]) -> int:
 
 def compute_node_chunk_volatility(chunk_id: int, prices: np.ndarray, iterations: int) -> np.ndarray:
     """Worker function executed inside an isolated OS process."""
-    pid = os.getpid()
+    if iterations < 0:
+        raise ValueError("iterations must be non-negative")
+    if prices.size == 0:
+        return np.empty_like(prices)
+
     # Simulate heavy quantitative calculation (rolling volatility proxy)
     accumulator = np.zeros_like(prices)
     for i in range(iterations):
-        accumulator += np.sqrt(prices * (0.0001 * (i % 5 + 1)))
+        accumulator += np.sqrt(np.abs(prices) * (0.0001 * (i % 5 + 1)))
     
     # Calculate synthetic volatility metric
-    volatility_metric = np.std(accumulator) * np.mean(prices) / 100.0
+    volatility_metric = np.std(accumulator) * np.mean(np.abs(prices)) / 100.0
     # Return array filled with computed metric mapped to chunk size
-    return np.full_shape_like if hasattr(np, 'full_shape_like') else np.full(prices.shape, volatility_metric)
+    return np.full(prices.shape, volatility_metric)
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="HOUSTON ENERGY TRADING: Multi-Processed Volatility Grid Engine")

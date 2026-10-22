@@ -1,6 +1,8 @@
 # --- Core Math & Statistical Engines ---
 numpy==1.26.4
 pandas==2.2.2
+polars[rtcompat]==2.0.0
 
 # --- Code Standardization & Verification ---
 mypy==1.9.0
+pytest==8.4.2

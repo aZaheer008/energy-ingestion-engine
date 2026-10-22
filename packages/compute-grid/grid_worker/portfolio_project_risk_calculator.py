@@ -13,14 +13,18 @@ import numpy as np
 
 def generate_mock_historical_data(file_path: Path, num_rows: int = 2_000_000) -> None:
     """Generates a large-scale synthetic historical pricing dataset and saves to Parquet."""
+    if num_rows < 0:
+        raise ValueError("num_rows must be non-negative")
+
     print(f"[*] Generating synthetic historical dataset ({num_rows:,} rows)...")
-    np.random.seed(42)
+    num_ticks = (num_rows + 49) // 50
+    rng = np.random.default_rng(42)
     
     data = {
-        "timestamp": np.repeat(np.arange(num_rows // 50), 50), # 50 nodes per tick
-        "node_id": np.tile(np.arange(1000, 1050), num_rows // 50),
-        "lmp": np.random.uniform(15.0, 350.0, size=num_rows),
-        "zone": np.repeat(np.random.choice(["HB_NORTH", "HB_SOUTH", "HB_WEST", "HB_HOUSTON"], size=num_rows // 50), 50)
+        "timestamp": np.repeat(np.arange(num_ticks), 50)[:num_rows], # 50 nodes per tick
+        "node_id": np.tile(np.arange(1000, 1050), num_ticks)[:num_rows],
+        "lmp": rng.uniform(15.0, 350.0, size=num_rows),
+        "zone": np.repeat(rng.choice(["HB_NORTH", "HB_SOUTH", "HB_WEST", "HB_HOUSTON"], size=num_ticks), 50)[:num_rows]
     }
     
     df = pl.DataFrame(data)
