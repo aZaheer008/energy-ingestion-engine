@@ -7,15 +7,22 @@ Demonstrates passing large arrays between processes without serialization overhe
 import time
 import os
 from multiprocessing import shared_memory, Lock
+from multiprocessing.synchronize import Lock as LockType
 from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 
-def worker_task(shm_name: int, shape: tuple, dtype: str, index: int, lock: Lock) -> None:
+def worker_task(
+    shm_name: str,
+    shape: tuple[int, ...],
+    dtype: str,
+    index: int,
+    lock: LockType,
+) -> None:
     # Attach to the existing shared memory block by its unique name
     existing_shm = shared_memory.SharedMemory(name=shm_name)
     
     # Create a NumPy array view backed by the shared memory buffer (Zero Copy!)
-    shared_array = np.ndarray(shape, dtype=dtype, buffer=existing_shm.buf)
+    shared_array: np.ndarray = np.ndarray(shape, dtype=dtype, buffer=existing_shm.buf)
     
     pid = os.getpid()
     print(f"[Worker PID {pid}] Attached to shared memory. Processing index {index}...")
@@ -39,7 +46,9 @@ if __name__ == "__main__":
     shm = shared_memory.SharedMemory(create=True, size=initial_data.nbytes)
     
     # 2. Create a NumPy array view on the newly allocated shared memory block
-    shared_prices = np.ndarray(initial_data.shape, dtype=initial_data.dtype, buffer=shm.buf)
+    shared_prices: np.ndarray = np.ndarray(
+        initial_data.shape, dtype=initial_data.dtype, buffer=shm.buf
+    )
     
     # Copy initial data into the shared memory block
     shared_prices[:] = initial_data[:]

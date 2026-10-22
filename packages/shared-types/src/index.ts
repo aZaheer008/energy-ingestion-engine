@@ -70,43 +70,57 @@ export interface PowerTradePayload {
  * Validates whether an untrusted JSON object strictly conforms to the PowerTradePayload contract.
  * Protects against database contamination from out-of-order or corrupt bot payloads.
  */
-export function isPowerTradePayload(payload: any): payload is PowerTradePayload {
-    if (!payload || typeof payload !== "object") return false;
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isEnumValue<T extends Record<string, string>>(
+    enumObject: T,
+    value: unknown
+): value is T[keyof T] {
+    return Object.values(enumObject).some((enumValue) => enumValue === value);
+}
+
+export function isPowerTradePayload(payload: unknown): payload is PowerTradePayload {
+    if (!isRecord(payload)) return false;
 
     // Validate Metadata Strings & Integers
     if (typeof payload.tradeId !== "string" || payload.tradeId.trim() === "") return false;
-    if (typeof payload.version !== "number" || payload.version < 1) return false;
+    if (typeof payload.version !== "number" || !Number.isFinite(payload.version) || payload.version < 1) return false;
     if (typeof payload.timestamp !== "string" || isNaN(Date.parse(payload.timestamp))) return false;
     if (typeof payload.traderId !== "string" || payload.traderId.trim() === "") return false;
     if (typeof payload.bookId !== "string" || payload.bookId.trim() === "") return false;
     if (typeof payload.counterparty !== "string" || payload.counterparty.trim() === "") return false;
 
     // Validate Direct Enums
-    if (!Object.values(TradeDirection).includes(payload.direction)) return false;
-    if (!Object.values(ProductType).includes(payload.product)) return false;
-    if (!Object.values(MarketOperator).includes(payload.marketOperator)) return false;
+    if (!isEnumValue(TradeDirection, payload.direction)) return false;
+    if (!isEnumValue(ProductType, payload.product)) return false;
+    if (!isEnumValue(MarketOperator, payload.marketOperator)) return false;
 
     // Validate Location Object
-    if (!payload.location || typeof payload.location !== "object") return false;
-    if (!Object.values(LocationType).includes(payload.location.type)) return false;
-    if (typeof payload.location.name !== "string" || payload.location.name.trim() === "") return false;
+    const location = payload.location;
+    if (!isRecord(location)) return false;
+    if (!isEnumValue(LocationType, location.type)) return false;
+    if (typeof location.name !== "string" || location.name.trim() === "") return false;
 
     // Validate Delivery Period & Time Order Logic
-    if (!payload.deliveryPeriod || typeof payload.deliveryPeriod !== "object") return false;
-    if (typeof payload.deliveryPeriod.startTime !== "string" || isNaN(Date.parse(payload.deliveryPeriod.startTime))) return false;
-    if (typeof payload.deliveryPeriod.endTime !== "string" || isNaN(Date.parse(payload.deliveryPeriod.endTime))) return false;
-    if (!Object.values(TimeOfUseBlock).includes(payload.deliveryPeriod.timeOfUseBlock)) return false;
+    const deliveryPeriod = payload.deliveryPeriod;
+    if (!isRecord(deliveryPeriod)) return false;
+    if (typeof deliveryPeriod.startTime !== "string" || isNaN(Date.parse(deliveryPeriod.startTime))) return false;
+    if (typeof deliveryPeriod.endTime !== "string" || isNaN(Date.parse(deliveryPeriod.endTime))) return false;
+    if (!isEnumValue(TimeOfUseBlock, deliveryPeriod.timeOfUseBlock)) return false;
 
     // Physical Rule: Delivery cannot end before it starts
-    const start = new Date(payload.deliveryPeriod.startTime).getTime();
-    const end = new Date(payload.deliveryPeriod.endTime).getTime();
+    const start = new Date(deliveryPeriod.startTime).getTime();
+    const end = new Date(deliveryPeriod.endTime).getTime();
     if (end <= start) return false;
 
     // Validate Financial Metrics
-    if (!payload.financials || typeof payload.financials !== "object") return false;
-    if (typeof payload.financials.volumeMW !== "number" || payload.financials.volumeMW <= 0) return false;
-    if (typeof payload.financials.pricePerMWh !== "number") return false; // Allows negative metrics
-    if (payload.financials.currency !== "USD") return false;
+    const financials = payload.financials;
+    if (!isRecord(financials)) return false;
+    if (typeof financials.volumeMW !== "number" || !Number.isFinite(financials.volumeMW) || financials.volumeMW <= 0) return false;
+    if (typeof financials.pricePerMWh !== "number" || !Number.isFinite(financials.pricePerMWh)) return false; // Allows negative metrics
+    if (financials.currency !== "USD") return false;
 
     return true;
 }

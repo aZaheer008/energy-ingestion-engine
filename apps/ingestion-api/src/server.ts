@@ -70,7 +70,7 @@ app.ready(async () => {
 // 3. CORE INGESTION CONTROLLER (Wired to PostgreSQL)
 // ============================================================================
 app.post("/api/v1/trades", async (request, reply) => {
-    const rawPayload = request.body;
+    const rawPayload: unknown = request.body;
 
     // STEP 1: Execute Runtime Type Guard Check
     if (!isPowerTradePayload(rawPayload)) {
@@ -130,17 +130,17 @@ app.post("/api/v1/trades", async (request, reply) => {
             trader_id: traderId,
             book_id: bookId,
             counterparty: counterparty,
-            direction: direction as any, // Cast strings cleanly to postgres custom enums
-            product: product as any,
-            market_operator: marketOperator as any,
+            direction,
+            product,
+            market_operator: marketOperator,
             volume_mw: financials.volumeMW,
             price_per_mwh: financials.pricePerMWh,
             currency: financials.currency,
             asset_attributes: JSON.stringify(assetAttributes) // Structured Polymorphic String Serialization
         });
 
-    } catch (dbError: any) {
-        app.log.error(`🚨 POSTGRESQL PERSISTENCE CRASH: ${dbError.message}`);
+    } catch (dbError: unknown) {
+        app.log.error(`🚨 POSTGRESQL PERSISTENCE CRASH: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
         
         // Critical System Event: Revert credit pool allocations in Redis immediately to prevent lockups
         await redis.set(creditKey, (currentBalance).toString());
